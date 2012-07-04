@@ -86,8 +86,8 @@ popd
 
 cat <<EOF > README.urpmi
 
-This package conforms to the Mandriva web applications policy:
-http://wiki.mandriva.com/Policies/Web_Applications
+This package conforms to the Mageia web applications policy:
+https://wiki.mageia.org/en/Web_applications_policy
 
 It therefore differs from a standard installation in the following
 ways:
