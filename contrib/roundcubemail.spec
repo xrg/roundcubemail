@@ -1,29 +1,16 @@
-%if %mandriva_branch == Cooker
-# Cooker
-%define release %mkrel 1
-%else
-# Old distros
-%define subrel 1
-%define release %mkrel 0
-%endif
-
-%if %mdkversion >= 201200
-# rpmlint just sucks!!!
-%define _build_pkgcheck_set %{nil}
-%define _build_pkgcheck_srpm %{nil}
-%endif
+%define git_repo roundcubemail
 
 Summary:	A PHP-based webmail server
 Name:		roundcubemail
-Version:	0.7.2
-Release:	%{release}
+Version:	%git_get_ver
+Release:	%mkrel %git_get_rel
 Group:		System/Servers
-License:	GPLv2
+License:	GPLv3
 # Use the -dep tarballs. These use system copies of the PHP stuff
 # rather than including them, which is better for our purposes.
 # - AdamW 2007/07
 URL:		http://www.roundcube.net/
-Source0:	http://downloads.sourceforge.net/roundcubemail/%{name}-%{version}-dep.tar.gz
+Source0:	%git_bs_source %{name}-%{version}.tar.gz
 Epoch:		1
 Requires:	apache-mod_php
 Requires:	php-gd
@@ -47,10 +34,7 @@ Suggests:	php-intl
 # Most people will probably use mysql, but you can use sqlite or
 # pgsql, so not a hard require - AdamW 2008/10
 Suggests:	php-pear-MDB2_Driver_mysql
-%if %mdkversion < 201010
-Requires(post):		rpm-helper
-Requires(postun):	rpm-helper
-%endif
+
 BuildArch:	noarch
 # rpm-build / rpm macros does not seem to require php-cli in cooker
 BuildRequires:	php-cli
@@ -65,13 +49,12 @@ written in PHP and requires a MySQL or PostgreSQL database. The user
 interface is fully skinnable using XHTML and CSS 2.
 
 %prep
-
-%setup -q -n %{name}-%{version}-dep
+%git_get_source
+%setup -q
 
 %build
 
 %install
-rm -rf %{buildroot}
 
 # tell it that we're moving the configuration files
 for i in installer/index.php program/include/iniset.php; do \
@@ -97,7 +80,7 @@ rm -rf logs
 cp -a * %{buildroot}%{_datadir}/%{name}
 
 pushd %{buildroot}%{_datadir}/%{name}
-rm -f CHANGELOG INSTALL UPGRADING LICENSE README
+rm -f CHANGELOG INSTALL UPGRADING LICENSE README.md
 popd
 
 
@@ -147,22 +130,10 @@ Alias /%{name} %{_datadir}/%{name}
 php_value suhosin.session.encrypt Off
 EOF
 
-%post
-%if %mdkversion < 201010
-%_post_webapp
-%endif
-
-%postun
-%if %mdkversion < 201010
-%_postun_webapp
-%endif
-
-%clean
-rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
-%doc CHANGELOG README README.urpmi UPGRADING
+%doc CHANGELOG README.md README.urpmi UPGRADING
 %{_datadir}/%{name}
 %dir %{_sysconfdir}/%{name}
 %{_logdir}/%{name}
@@ -173,3 +144,5 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/%{name}/db.inc.php
 %config(noreplace) %{_sysconfdir}/%{name}/main.inc.php
 %config(noreplace) %{_webappconfdir}/%{name}.conf
+
+%changelog -f %{_sourcedir}/%{name}-changelog.gitrpm.txt
